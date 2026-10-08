@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1a0b2e">
+<title>Tarot & Carta Natal</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --bg:#0d0618; --bg2:#1a0b2e; --card:#1e1236; --gold:#e8c56a;
+    --gold2:#f6e2a1; --purple:#7c3aed; --pink:#c084fc; --text:#ede9fe;
+    --muted:#a78bfa; --line:#3b2a5c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(circle at 20% 0%,#2a1354 0%,var(--bg) 60%);
+    color:var(--text); min-height:100vh; padding-bottom:80px;
+  }
+  header{
+    padding:24px 20px 12px; text-align:center;
+    background:linear-gradient(180deg,#1a0b2e 0%,transparent 100%);
+  }
+  header h1{
+    font-size:1.6rem; font-weight:800; letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--gold),var(--pink),var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header p{color:var(--muted); font-size:.85rem; margin-top:6px}
+  .tabs{
+    display:flex; gap:8px; padding:12px 16px; position:sticky; top:0;
+    background:rgba(13,6,24,.85); backdrop-filter:blur(12px); z-index:10;
+    border-bottom:1px solid var(--line);
+  }
+  .tab{
+    flex:1; padding:12px; border:none; border-radius:12px;
+    background:var(--card); color:var(--muted); font-weight:600;
+    font-size:.9rem; cursor:pointer; transition:.2s;
+  }
+  .tab.active{
+    background:linear-gradient(135deg,var(--purple),var(--pink));
+    color:#fff; box-shadow:0 6px 20px rgba(124,58,237,.4);
+  }
+  main{padding:20px; max-width:640px; margin:0 auto}
+  .panel{display:none; animation:fade .3s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+
+  /* ---- TAROT ---- */
+  .row{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap}
+  .chip{
+    flex:1; min-width:120px; padding:12px; border-radius:12px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--muted); font-weight:600; cursor:pointer; text-align:center;
+    font-size:.85rem; transition:.2s;
+  }
+  .chip.active{border-color:var(--gold); color:var(--gold); background:#241539}
+  .btn{
+    width:100%; padding:16px; border:none; border-radius:16px;
+    background:linear-gradient(135deg,var(--gold),#d4a536);
+    color:#1a0b2e; font-weight:800; font-size:1rem; cursor:pointer;
+    letter-spacing:.5px; box-shadow:0 8px 24px rgba(232,197,106,.3);
+    transition:.2s;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{
+    background:transparent; border:1px solid var(--line);
+    color:var(--muted); box-shadow:none; margin-top:10px;
+  }
+  .cards{
+    display:grid; gap:14px; margin-top:20px;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  }
+  .card{
+    perspective:1000px; aspect-ratio:2/3.2; cursor:pointer;
+  }
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transition:transform .7s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d;
+  }
+  .card.flipped .card-inner{transform:rotateY(180deg)}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:16px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:12px; text-align:center;
+    border:1px solid var(--line);
+  }
+  .back{
+    background:
+      repeating-linear-gradient(45deg,#2a1354 0 6px,#1e1236 6px 12px);
+    border:2px solid var(--gold);
+  }
+  .back::after{
+    content:"✦"; font-size:2.4rem; color:var(--gold); opacity:.7;
+  }
+  .front{
+    background:linear-gradient(160deg,#241539,#1a0b2e);
+    transform:rotateY(180deg); border:1px solid var(--gold);
+    overflow:hidden;
+  }
+  .front .sym{font-size:2.2rem; margin-bottom:6px}
+  .front .name{font-weight:700; color:var(--gold2); font-size:.9rem}
+  .front .rev{
+    font-size:.7rem; color:var(--pink); margin-top:4px;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+  .reading{
+    margin-top:18px; padding:16px; border-radius:14px;
+    background:var(--card); border:1px solid var(--line);
+  }
+  .reading h3{color:var(--gold); font-size:.95rem; margin-bottom:8px}
+  .reading p{font-size:.9rem; line-height:1.55; color:#d9d2f0}
+  .reading p+p{margin-top:8px}
+
+  /* ---- CARTA NATAL ---- */
+  .field{margin-bottom:14px}
+  .field label{
+    display:block; font-size:.8rem; color:var(--muted);
+    margin-bottom:6px; font-weight:600; letter-spacing:.3px;
+  }
+  .field input,.field select{
+    width:100%; padding:12px 14px; border-radius:12px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--text); font-size:.95rem; outline:none;
+  }
+  .field input:focus,.field select:focus{border-color:var(--gold)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .result{margin-top:20px; display:none}
+  .result.show{display:block; animation:fade .4s}
+  .big3{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    margin-bottom:16px;
+  }
+  .big3 .item{
+    padding:14px 8px; border-radius:14px; text-align:center;
+    background:linear-gradient(160deg,#241539,#1a0b2e);
+    border:1px solid var(--line);
+  }
+  .big3 .lbl{font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  .big3 .val{font-size:1.05rem; color:var(--gold2); font-weight:700; margin-top:4px}
+  .big3 .sub{font-size:.7rem; color:var(--pink); margin-top:2px}
+  .planets{display:flex; flex-direction:column; gap:8px}
+  .planet{
+    display:flex; align-items:center; gap:12px; padding:10px 14px;
+    background:var(--card); border-radius:12px; border:1px solid var(--line);
+    font-size:.88rem;
+  }
+  .planet .ico{font-size:1.2rem; width:26px; text-align:center}
+  .planet .pname{color:var(--muted); flex:1}
+  .planet .sign{color:var(--gold2); font-weight:600}
+  .planet .deg{color:var(--pink); font-size:.78rem; min-width:52px; text-align:right}
+
+  footer{
+    position:fixed; bottom:0; left:0; right:0; padding:10px;
+    text-align:center; font-size:.7rem; color:var(--muted);
+    background:rgba(13,6,24,.9); backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+  }
+  .install{
+    position:fixed; bottom:44px; left:50%; transform:translateX(-50%);
+    padding:10px 18px; border-radius:24px; background:var(--purple);
+    color:#fff; font-size:.8rem; font-weight:700; border:none;
+    box-shadow:0 8px 24px rgba(124,58,237,.5); display:none; cursor:pointer;
+    z-index:20;
+  }
+  .install.show{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✦ Oráculo Estelar ✦</h1>
+  <p>Tarot & Carta Natal</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="tarot">🔮 Tarot</button>
+  <button class="tab" data-tab="natal">🌌 Carta Natal</button>
+</nav>
+
+<main>
+
+  <!-- ============ TAROT ============ -->
+  <section class="panel active" id="tarot">
+    <div class="row">
+      <button class="chip active" data-count="1">1 Carta</button>
+      <button class="chip" data-count="3">3 Cartas</button>
+    </div>
+    <button class="btn" id="drawBtn">Barajar y Repartir</button>
+    <div class="cards" id="cards"></div>
+    <div class="reading" id="reading" style="display:none"></div>
+  </section>
+
+  <!-- ============ CARTA NATAL ============ -->
+  <section class="panel" id="natal">
+    <div class="field">
+      <label>Fecha de nacimiento</label>
+      <input type="date" id="birthdate" value="1995-06-15">
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Hora (local)</label>
+        <input type="time" id="birthtime" value="12:00">
+      </div>
+      <div class="field">
+        <label>Ciudad</label>
+        <select id="city">
+          <option value="19.4326,-99.1332,-6">CDMX</option>
+          <option value="20.6597,-103.3496,-6">Guadalajara</option>
+          <option value="25.6866,-100.3161,-6">Monterrey</option>
+          <option value="19.0414,-98.2063,-6">Puebla</option>
+          <option value="32.5149,-117.0382,-8">Tijuana</option>
+          <option value="21.1619,-86.8515,-5">Cancún</option>
+          <option value="20.9674,-89.5926,-6">Mérida</option>
+          <option value="19.1738,-96.1342,-6">Veracruz</option>
+          <option value="40.4168,-3.7038,1">Madrid</option>
+          <option value="-34.6037,-58.3816,-3">Buenos Aires</option>
+          <option value="4.7110,-74.0721,-5">Bogotá</option>
+          <option value="-12.0464,-77.0428,-5">Lima</option>
+          <option value="-33.4489,-70.6693,-3">Santiago</option>
+          <option value="-23.5505,-46.6333,-3">São Paulo</option>
+          <option value="40.7128,-74.0060,-5">Nueva York</option>
+          <option value="34.0522,-118.2437,-8">Los Ángeles</option>
+          <option value="51.5074,-0.1278,0">Londres</option>
+          <option value="48.8566,2.3522,1">París</option>
+          <option value="35.6762,139.6503,9">Tokio</option>
+          <option value="manual">Otra (manual)</option>
+        </select>
+    </div>
+    <div id="manualBox" style="display:none">
+      <div class="grid2">
+        <div class="field">
+          <label>Latitud</label>
+          <input type="number" id="lat" value="19.4326" step="0.0001">
+        </div>
+        <div class="field">
+          <label>Longitud</label>
+          <input type="number" id="lon" value="-99.1332" step="0.0001">
+        </div>
+      </div>
+      <div class="field">
+        <label>Zona horaria UTC (ej. -6)</label>
+        <input type="number" id="tz" value="-6" step="1">
+      </div>
+    </div>
+    <button class="btn" id="calcBtn" style="margin-top:10px">Calcular Carta Natal</button>
+
+    <div class="result" id="natalResult">
+      <div class="big3">
+        <div class="item"><div class="lbl">Sol</div><div class="val" id="rSun">—</div><div class="sub" id="rSunD"></div></div>
+        <div class="item"><div class="lbl">Luna</div><div class="val" id="rMoon">—</div><div class="sub" id="rMoonD"></div></div>
+        <div class="item"><div class="lbl">Ascendente</div><div class="val" id="rAsc">—</div><div class="sub" id="rAscD"></div></div>
+      </div>
+      <div class="planets" id="planetList"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Hecho con ✦ para GitHub Pages · Instálala como app</footer>
+<button class="install" id="installBtn">📲 Instalar app</button>
+
+<script>
+/* ============================================================
+   TAROT
+   ============================================================ */
+const ARCANA = [
+  {n:"El Loco",s:"🃏",u:"Nuevos comienzos, espontaneidad, fe en el camino. Un salto confiado hacia lo desconocido.",r:"Imprudencia, indecisión, miedo a empezar. Falta de dirección."},
+  {n:"El Mago",s:"🪄",u:"Manifestación, poder personal, habilidades. Tienes las herramientas para lograrlo.",r:"Manipulación, talento desperdiciado, inseguridad."},
+  {n:"La Sacerdotisa",s:"🌙",u:"Intuición, misterio, sabiduría interior. Escucha tu voz interna.",r:"Secretos, desconexión de la intuición, superficialidad."},
+  {n:"La Emperatriz",s:"🌾",u:"Abundancia, fertilidad, creatividad, cuidado maternal.",r:"Dependencia, bloqueo creativo, descuido propio."},
+  {n:"El Emperador",s:"🏛️",u:"Autoridad, estructura, liderazgo, estabilidad.",r:"Tiranía, rigidez, pérdida de control."},
+  {n:"El Sumo Sacerdote",s:"📜",u:"Tradición, guía espiritual, enseñanza, convenciones.",r:"Rebeldía, dogmatismo, desconexión de la fe."},
+  {n:"Los Enamorados",s:"💞",u:"Amor, elección, armonía, unión significativa.",r:"Indecisión, desequilibrio, conflicto de valores."},
+  {n:"El Carro",s:"⚔️",u:"Victoria, determinación, control, avance decidido.",r:"Falta de rumbo, obstáculos, agresividad."},
+  {n:"La Fuerza",s:"🦁",u:"Coraje, dominio sereno, compasión, poder interior.",r:"Duda, debilidad, miedo a tu propio poder."},
+  {n:"El Ermitaño",s:"🕯️",u:"Introspección, sabiduría, búsqueda solitaria de la verdad.",r:"Aislamiento, soledad no elegida, terquedad."},
+  {n:"La Rueda",s:"🎡",u:"Ciclos, destino, cambio afortunado, giro del destino.",r:"Mala racha, resistencia al cambio, retrasos."},
+  {n:"La Justicia",s:"⚖️",u:"Equilibrio, verdad, causa y efecto, decisiones justas.",r:"Injusticia, deshonestidad, evasión de responsabilidad."},
+  {n:"El Colgado",s:"🙃",u:"Pausa, nueva perspectiva, sacrificio, entrega.",r:"Estancamiento, martirio inútil, resistencia."},
+  {n:"La Muerte",s:"💀",u:"Transformación profunda, fin de un ciclo, renacimiento.",r:"Resistencia al cambio, estancamiento, miedo."},
+  {n:"La Templanza",s:"🕊️",u:"Equilibrio, moderación, sanación, paciencia.",r:"Excesos, desequilibrio, impaciencia."},
+  {n:"El Diablo",s:"😈",u:"Pasión, deseo, ataduras, sombra que hay que mirar.",r:"Liberación, ruptura de cadenas, toma de conciencia."},
+  {n:"La Torre",s:"🗼",u:"Cambio brusco, revelación, derrumbe necesario.",r:"Desastre evitado, miedo al cambio, catástrofe interna."},
+  {n:"La Estrella",s:"⭐",u:"Esperanza, inspiración, sanación, fe renovada.",r:"Desánimo, falta de fe, desconexión."},
+  {n:"La Luna",s:"🌕",u:"Ilusión, subconsciente, miedos ocultos, intuición.",r:"Confusión disipada, verdad revelada, alivio."},
+  {n:"El Sol",s:"☀️",u:"Éxito, alegría, vitalidad, claridad total.",r:"Éxito moderado, tristeza, optimismo forzado."},
+  {n:"El Juicio",s:"📯",u:"Renacimiento, llamado interior, despertar, perdón.",r:"Autocrítica excesiva, dudas, evitación."},
+  {n:"El Mundo",s:"🌍",u:"Realización, plenitud, cierre de ciclo, logro.",r:"Metas pendientes, sensación de vacío, falta de cierre."}
+];
+
+const positions3 = ["Pasado", "Presente", "Futuro"];
+const positions1 = ["Mensaje"];
+let currentCount = 1;
+
+document.querySelectorAll('.chip').forEach(c=>{
+  c.onclick = ()=>{
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    currentCount = +c.dataset.count;
+    document.getElementById('cards').innerHTML='';
+    document.getElementById('reading').style.display='none';
+  };
+});
+
+document.getElementById('drawBtn').onclick = () => {
+  const pool = [...ARCANA].sort(()=>Math.random()-0.5).slice(0, currentCount);
+  const cards = document.getElementById('cards');
+  cards.style.gridTemplateColumns = currentCount===1 ? '1fr' : 'repeat(3,1fr)';
+  cards.innerHTML = '';
+  const reading = document.getElementById('reading');
+  reading.style.display = 'none';
+  reading.innerHTML = '';
+
+  pool.forEach((a,i)=>{
+    const rev = Math.random() < 0.35;
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <div class="card-inner">
+        <div class="face back"></div>
+        <div class="face front">
+          <div class="sym">${a.s}</div>
+          <div class="name">${a.n}</div>
+          ${rev?'<div class="rev">Invertida</div>':''}
+        </div>
+      </div>`;
+    el.onclick = ()=> el.classList.toggle('flipped');
+    cards.appendChild(el);
+    setTimeout(()=> el.classList.add('flipped'), 250 + i*260);
+  });
+
+  setTimeout(()=>{
+    let html = '<h3>✦ Interpretación ✦</h3>';
+    pool.forEach((a,i)=>{
+      const rev = Math.random()<0; // ya decidido, se recalcula abajo
+    });
+    // Regenerar con mismo rev que se mostró
+    // Truco: guardamos rev en el DOM
+    const rendered = [...cards.children];
+    rendered.forEach((el,i)=>{
+      const isRev = el.querySelector('.rev') !== null;
+      const a = pool[i];
+      const pos = currentCount===1 ? positions1[0] : positions3[i];
+      html += `<p><strong style="color:var(--gold2)">${pos} — ${a.n}${isRev?' (invertida)':''}:</strong> ${isRev?a.r:a.u}</p>`;
+    });
+    reading.innerHTML = html;
+    reading.style.display = 'block';
+  }, 400 + pool.length*280);
+};
+
+/* ============================================================
+   CARTA NATAL — cálculos astronómicos simplificados
+   ============================================================ */
+const SIGNS = ["Aries","Tauro","Géminis","Cáncer","Leo","Virgo","Libra","Escorpio","Sagitario","Capricornio","Acuario","Piscis"];
+const SIGNS_EMOJI = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+const PLANETS = [
+  {name:"Sol",ico:"☀️",L0:null},
+  {name:"Luna",ico:"🌙",L0:null},
+  {name:"Mercurio",ico:"☿",L0:252.25,P:87.969,d:0.387},
+  {name:"Venus",ico:"♀",L0:181.98,P:224.701,d:0.723},
+  {name:"Marte",ico:"♂",L0:355.43,P:686.980,d:1.524},
+  {name:"Júpiter",ico:"♃",L0:34.35,P:4332.589,d:5.203},
+  {name:"Saturno",ico:"♄",L0:50.08,P:10759.22,d:9.537},
+  {name:"Urano",ico:"♅",L0:314.05,P:30685.4,d:19.19},
+  {name:"Neptuno",ico:"♆",L0:304.35,P:60189,d:30.07},
+  {name:"Plutón",ico:"♇",L0:238.93,P:90560,d:39.48}
+];
+const D2R = Math.PI/180, R2D = 180/Math.PI;
+
+function toJD(y,m,d,h){
+  if(m<=2){y--;m+=12;}
+  const A = Math.floor(y/100);
+  const B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + B - 1524.5 + h/24;
+}
+function norm360(x){x%=360; return x<0?x+360:x;}
+
+function earthHelio(d){
+  return norm360(100.46 + 0.98564736 * d);
+}
+function sunGeo(d){
+  return norm360(earthHelio(d) + 180);
+}
+function moonGeo(d){
+  const L = 218.316 + 13.176396 * d;
+  const M = (134.963 + 13.064993 * d) * D2R;
+  return norm360(L + 6.289*Math.sin(M));
+}
+function planetGeo(L0,P,dist,d){
+  const Lh = norm360(L0 + 360*d/P);
+  const Le = earthHelio(d);
+  const x = dist*Math.cos(Lh*D2R) - Math.cos(Le*D2R);
+  const y = dist*Math.sin(Lh*D2R) - Math.sin(Le*D2R);
+  return norm360(Math.atan2(y,x)*R2D);
+}
+function gmst(d){
+  let g = 18.697374558 + 24.06570982441908 * d;
+  g %= 24; if(g<0) g+=24;
+  return g;
+}
+function ascMc(d, latDeg, lonDeg){
+  const eps = 23.4393 * D2R;
+  const lst = (gmst(d) + lonDeg/15) % 24;
+  const ramc = ((lst*15)%360)*D2R;
+  const phi = latDeg*D2R;
+  let asc = Math.atan2(Math.cos(ramc), -(Math.sin(ramc)*Math.cos(eps) + Math.tan(phi)*Math.sin(eps)));
+  asc = norm360(asc*R2D);
+  let mc = Math.atan2(Math.sin(ramc), Math.cos(ramc)*Math.cos(eps));
+  mc = norm360(mc*R2D);
+  return {asc, mc};
+}
+function signOf(lon){
+  const i = Math.floor(norm360(lon)/30);
+  const deg = norm360(lon)%30;
+  return {sign:SIGNS[i], emoji:SIGNS_EMOJI[i], deg:deg.toFixed(1)};
+}
+
+document.getElementById('city').onchange = e=>{
+  document.getElementById('manualBox').style.display = e.target.value==='manual'?'block':'none';
+};
+
+document.getElementById('calcBtn').onclick = ()=>{
+  const dateStr = document.getElementById('birthdate').value;
+  const timeStr = document.getElementById('birthtime').value || "12:00";
+  if(!dateStr){alert("Ingresa tu fecha de nacimiento");return;}
+
+  const [Y,M,D] = dateStr.split('-').map(Number);
+  const [hh,mm] = timeStr.split(':').map(Number);
+
+  let lat, lon, tz;
+  const cityVal = document.getElementById('city').value;
+  if(cityVal==='manual'){
+    lat = parseFloat(document.getElementById('lat').value);
+    lon = parseFloat(document.getElementById('lon').value);
+    tz  = parseFloat(document.getElementById('tz').value);
+  } else {
+    [lat, lon, tz] = cityVal.split(',').map(Number);
+  }
+
+  // Convertir hora local a UTC
+  const utcH = hh + mm/60 - tz;
+  const jd = toJD(Y, M, D, utcH);
+  const d = jd - 2451545.0;
+
+  const sunL  = sunGeo(d);
+  const moonL = moonGeo(d);
+  const {asc} = ascMc(d, lat, lon);
+
+  const res = document.getElementById('natalResult');
+  const sunS  = signOf(sunL);
+  const moonS = signOf(moonL);
+  const ascS  = signOf(asc);
+
+  document.getElementById('rSun').textContent = sunS.emoji + ' ' + sunS.sign;
+  document.getElementById('rSunD').textContent = sunS.deg + '°';
+  document.getElementById('rMoon').textContent = moonS.emoji + ' ' + moonS.sign;
+  document.getElementById('rMoonD').textContent = moonS.deg + '°';
+  document.getElementById('rAsc').textContent = ascS.emoji + ' ' + ascS.sign;
+  document.getElementById('rAscD').textContent = ascS.deg + '°';
+
+  const list = document.getElementById('planetList');
+  list.innerHTML = '';
+  PLANETS.forEach(p=>{
+    let lonP;
+    if(p.name==='Sol') lonP = sunL;
+    else if(p.name==='Luna') lonP = moonL;
+    else lonP = planetGeo(p.L0,p.P,p.d,d);
+    const s = signOf(lonP);
+    const row = document.createElement('div');
+    row.className = 'planet';
+    row.innerHTML = `<span class="ico">${p.ico}</span>
+      <span class="pname">${p.name}</span>
+      <span class="sign">${s.emoji} ${s.sign}</span>
+      <span class="deg">${s.deg}°</span>`;
+    list.appendChild(row);
+  });
+
+  res.classList.add('show');
+  res.scrollIntoView({behavior:'smooth', block:'start'});
+};
+
+/* ============================================================
+   PWA — Service Worker + Install
+   ============================================================ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').classList.add('show');
+});
+document.getElementById('installBtn').onclick = async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').classList.remove('show');
+};
+
+/* Tabs */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+  };
+});
+</script>
+</body>
+</html>
