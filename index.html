@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1a0b2e">
+<meta name="description" content="PWA de Tarot, Carta Natal, Revoluciones. Por Abraham Fernando Ulloa O.">
+<meta name="author" content="Abraham Fernando Ulloa O.">
+<title>Oráculo Estelar — Tarot & Carta Natal</title>
+
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Oráculo">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+
+<style>
+  :root[data-theme="dark"]{
+    --bg:#0d0618; --bg2:#1a0b2e; --card:#1e1236;
+    --gold:#e8c56a; --gold2:#f6e2a1; --purple:#7c3aed;
+    --pink:#c084fc; --text:#ede9fe; --muted:#a78bfa; --line:#3b2a5c;
+    --green:#4ade80; --red:#ef4444; --blue:#60a5fa;
+    --wheel-bg:#150a26; --radius:16px;
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f3ff; --bg2:#ede9fe; --card:#ffffff;
+    --gold:#a67c00; --gold2:#8b6508; --purple:#7c3aed;
+    --pink:#a855f7; --text:#1e1236; --muted:#6d28d9; --line:#ddd6fe;
+    --green:#16a34a; --red:#dc2626; --blue:#2563eb;
+    --wheel-bg:#faf5ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);
+    background-image:radial-gradient(circle at 20% 0%, var(--bg2) 0%, var(--bg) 60%);
+    color:var(--text); min-height:100vh; padding-bottom:80px;
+    transition:background .3s, color .3s;
+  }
+  header{padding:20px 20px 12px; text-align:center; position:relative}
+  header h1{
+    font-size:1.5rem; font-weight:800; letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--gold),var(--pink),var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header p{color:var(--muted); font-size:.82rem; margin-top:6px}
+  .theme-toggle{
+    position:absolute; top:16px; right:16px;
+    width:40px; height:40px; border-radius:50%;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--gold); font-size:1.1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .theme-toggle:active{transform:scale(.92)}
+
+  .tabs{
+    display:flex; gap:6px; padding:10px 12px; position:sticky; top:0;
+    background:var(--bg); z-index:10; border-bottom:1px solid var(--line);
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    flex:1; min-width:88px; padding:11px 8px; border:none; border-radius:12px;
+    background:var(--card); color:var(--muted); font-weight:600;
+    font-size:.8rem; cursor:pointer; transition:.2s; white-space:nowrap;
+  }
+  .tab.active{
+    background:linear-gradient(135deg,var(--purple),var(--pink));
+    color:#fff; box-shadow:0 6px 20px rgba(124,58,237,.35);
+  }
+  main{padding:20px; max-width:680px; margin:0 auto}
+  .panel{display:none; animation:fade .3s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+
+  .row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap}
+  .chip{
+    flex:1; min-width:88px; padding:11px 8px; border-radius:12px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--muted); font-weight:600; cursor:pointer; text-align:center;
+    font-size:.78rem; transition:.2s;
+  }
+  .chip.active{border-color:var(--gold); color:var(--gold); background:var(--bg2)}
+  .btn{
+    width:100%; padding:15px; border:none; border-radius:14px;
+    background:linear-gradient(135deg,var(--gold),#d4a536);
+    color:#fff; font-weight:800; font-size:.98rem; cursor:pointer;
+    letter-spacing:.4px; box-shadow:0 6px 20px rgba(168,124,0,.28);
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.secondary{
+    background:transparent; border:1px solid var(--line);
+    color:var(--muted); box-shadow:none; margin-top:10px; font-size:.88rem;
+    padding:12px;
+  }
+  .btn.share{
+    background:linear-gradient(135deg,var(--purple),var(--pink));
+    color:#fff; margin-top:10px; font-size:.88rem; padding:12px;
+  }
+  .btn.whatsapp{
+    background:linear-gradient(135deg,#25d366,#128c7e);
+    color:#fff; margin-top:8px; font-size:.88rem; padding:12px;
+  }
+  .btn.pdf{
+    background:var(--card); border:1px solid var(--line);
+    color:var(--text); margin-top:8px; font-size:.88rem; padding:12px;
+  }
+  .btn-group{display:flex; gap:8px; margin-top:10px}
+  .btn-group .btn{flex:1}
+
+  .field{margin-bottom:12px}
+  .field label{
+    display:block; font-size:.78rem; color:var(--muted);
+    margin-bottom:6px; font-weight:600; letter-spacing:.3px;
+  }
+  .field input,.field select{
+    width:100%; padding:12px 14px; border-radius:12px;
+    background:var(--card); border:1px solid var(--line);
+    color:var(--text); font-size:.95rem; outline:none;
+  }
+  .field input:focus,.field select:focus{border-color:var(--gold)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .check-row{
+    display:flex; align-items:center; gap:10px; padding:10px 12px;
+    background:var(--card); border-radius:12px; border:1px solid var(--line);
+    cursor:pointer; user-select:none; font-size:.85rem;
+  }
+  .check-row input{width:auto; margin:0}
+
+  /* Tarot */
+  .cards{
+    display:grid; gap:14px; margin-top:20px;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  }
+  .card{perspective:1000px; aspect-ratio:2/3.2; cursor:pointer}
+  .card-inner{
+    position:relative; width:100%; height:100%;
+    transition:transform .7s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d;
+  }
+  .card.flipped .card-inner{transform:rotateY(180deg)}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:16px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:12px; text-align:center;
+    border:1px solid var(--line);
+  }
+  .back{
+    background:repeating-linear-gradient(45deg,#2a1354 0 6px,#1e1236 6px 12px);
+    border:2px solid var(--gold);
+  }
+  :root[data-theme="light"] .back{
+    background:repeating-linear-gradient(45deg,#ddd6fe 0 6px,#ede9fe 6px 12px);
+  }
+  .back::after{content:"✦"; font-size:2.4rem; color:var(--gold); opacity:.7}
+  .front{
+    background:linear-gradient(160deg,var(--bg2),var(--bg));
+    transform:rotateY(180deg); border:1px solid var(--gold); overflow:hidden;
+  }
+  .front .sym{font-size:2.2rem; margin-bottom:6px}
+  .front .name{font-weight:700; color:var(--gold2); font-size:.9rem}
+  .front .rev{
+    font-size:.68rem; color:var(--pink); margin-top:4px;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+
+  .reading{
+    margin-top:18px; padding:16px; border-radius:14px;
+    background:var(--card); border:1px solid var(--line);
+  }
+  .reading h3{color:var(--gold); font-size:.95rem; margin-bottom:8px}
+  .reading p{font-size:.9rem; line-height:1.6}
+  .reading p+p{margin-top:8px}
+  .reading .meta{font-size:.75rem; color:var(--muted); margin-bottom:10px; font-style:italic}
+
+  .personal-box{
+    margin-top:16px; padding:16px; border-radius:14px;
+    background:linear-gradient(160deg,var(--bg2),var(--card));
+    border:1px solid var(--purple);
+  }
+  .personal-box h3{
+    color:var(--gold); font-size:.95rem; margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .personal-box .sign-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:20px;
+    background:var(--purple); color:#fff; font-size:.72rem;
+    font-weight:700; margin-bottom:10px;
+  }
+  .personal-box p{font-size:.88rem; line-height:1.6; color:var(--text)}
+  .personal-box p+p{margin-top:8px}
+  .personal-box .quote{
+    font-style:italic; color:var(--muted); font-size:.82rem;
+    border-left:2px solid var(--gold); padding-left:10px; margin-top:10px;
+  }
+
+  .card-details{
+    margin-top:16px; display:flex; flex-direction:column; gap:10px;
+  }
+  .card-detail{
+    padding:14px; border-radius:12px;
+    background:var(--card); border:1px solid var(--line);
+  }
+  .card-detail .cd-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:8px;
+  }
+  .card-detail .cd-pos{
+    font-size:.68rem; text-transform:uppercase; letter-spacing:1px;
+    color:var(--pink); font-weight:700;
+  }
+  .card-detail .cd-name{
+    font-size:.95rem; font-weight:700; color:var(--gold2);
+  }
+  .card-detail .cd-rev{
+    font-size:.7rem; color:var(--red); font-weight:600;
+  }
+  .card-detail .cd-text{
+    font-size:.85rem; line-height:1.55; color:var(--text);
+  }
+
+  /* Natal */
+  .result{margin-top:20px; display:none}
+  .result.show{display:block; animation:fade .4s}
+  .big3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px}
+  .big3 .item{
+    padding:14px 8px; border-radius:14px; text-align:center;
+    background:var(--card); border:1px solid var(--line);
+  }
+  .big3 .lbl{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  .big3 .val{font-size:1.02rem; color:var(--gold2); font-weight:700; margin-top:4px}
+  .big3 .sub{font-size:.68rem; color:var(--pink); margin-top:2px}
+  .big3 .item.unknown .val{color:var(--muted); font-style:italic}
+
+  .warn-box{
+    padding:10px 14px; border-radius:12px; font-size:.78rem;
+    background:rgba(239,68,68,.1); border:1px solid var(--red);
+    color:var(--red); margin-bottom:14px; line-height:1.5;
+  }
+
+  .wheel-box{
+    background:var(--card); border-radius:16px; padding:14px;
+    border:1px solid var(--line); margin-bottom:16px; text-align:center;
+  }
+  .wheel-box svg{width:100%; max-width:420px; height:auto; display:block; margin:0 auto}
+
+  .planets{display:flex; flex-direction:column; gap:8px}
+  .planet{
+    display:flex; align-items:center; gap:12px; padding:10px 14px;
+    background:var(--card); border-radius:12px; border:1px solid var(--line);
+    font-size:.86rem;
+  }
+  .planet .ico{font-size:1.2rem; width:26px; text-align:center; color:var(--gold)}
+  .planet .pname{color:var(--muted); flex:1}
+  .planet .sign{color:var(--gold2); font-weight:600}
+  .planet .deg{color:var(--pink); font-size:.75rem; min-width:50px; text-align:right}
+
+  .aspects{margin-top:16px}
+  .aspects h3{color:var(--gold); font-size:.95rem; margin-bottom:10px}
+  .aspect-item{
+    display:flex; align-items:center; gap:10px; padding:8px 12px;
+    background:var(--card); border-radius:10px; border:1px solid var(--line);
+    font-size:.8rem; margin-bottom:6px;
+  }
+  .aspect-item .asp-sym{font-size:1rem; width:20px; text-align:center}
+  .aspect-item .asp-names{flex:1; color:var(--muted)}
+  .aspect-item .asp-name{color:var(--text); font-weight:600}
+  .aspect-item .orb{color:var(--pink); font-size:.72rem}
+
+  .rev-card{
+    background:var(--card); border-radius:16px; padding:16px;
+    border:1px solid var(--line); margin-bottom:14px;
+  }
+  .rev-card h3{
+    color:var(--gold); font-size:1rem; margin-bottom:6px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .rev-card .date-info{font-size:.8rem; color:var(--muted); margin-bottom:12px}
+  .rev-card .date-info strong{color:var(--pink)}
+  .empty-msg{
+    text-align:center; padding:40px 20px; color:var(--muted);
+    font-size:.9rem; line-height:1.6;
+  }
+  .empty-msg .ico{font-size:2.5rem; display:block; margin-bottom:14px}
+
+  footer{
+    position:fixed; bottom:0; left:0; right:0; padding:10px;
+    text-align:center; font-size:.7rem; color:var(--muted);
+    background:var(--bg); border-top:1px solid var(--line); z-index:5;
+  }
+  footer strong{color:var(--gold); font-weight:600}
+  .install{
+    position:fixed; bottom:44px; left:50%; transform:translateX(-50%);
+    padding:10px 18px; border-radius:24px; background:var(--purple);
+    color:#fff; font-size:.8rem; font-weight:700; border:none;
+    box-shadow:0 8px 24px rgba(124,58,237,.5); display:none; cursor:pointer;
+    z-index:20;
+  }
+  .install.show{display:block}
+
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--card); color:var(--text); padding:12px 20px;
+    border-radius:24px; border:1px solid var(--line); font-size:.85rem;
+    box-shadow:0 8px 30px rgba(0,0,0,.4); opacity:0; pointer-events:none;
+    transition:.3s; z-index:100;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  @media print{
+    body{background:#fff !important; color:#000 !important; padding:0}
+    .tabs, footer, .install, button, .theme-toggle, .no-print{display:none !important}
+    .panel{display:none !important}
+    .panel.active{display:block !important}
+    .result{display:block !important}
+    .wheel-box, .reading, .rev-card, .planet, .big3 .item,
+    .aspect-item, .personal-box, .card-detail{
+      background:#fff !important; border:1px solid #ccc !important; color:#000 !important;
+    }
+    .reading h3, .rev-card h3, .aspects h3, .personal-box h3{color:#000 !important}
+    .reading p, .planet .sign, .planet .pname, .planet .deg,
+    .big3 .val, .big3 .lbl, .big3 .sub, .card-detail .cd-text{color:#000 !important}
+    .card{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="theme-toggle no-print" id="themeToggle">🌙</button>
+  <h1>✦ Oráculo Estelar ✦</h1>
+  <p>Tarot · Carta Natal · Revoluciones</p>
+</header>
+
+<nav class="tabs no-print">
+  <button class="tab active" data-tab="tarot">🔮 Tarot</button>
+  <button class="tab" data-tab="natal">🌌 Natal</button>
+  <button class="tab" data-tab="rev">☀ Revoluciones</button>
+</nav>
+
+<main>
+
+  <!-- ============ TAROT ============ -->
+  <section class="panel active" id="tarot">
+
+    <div class="field">
+      <label>📅 Tu fecha de nacimiento (opcional, para lectura personalizada)</label>
+      <input type="date" id="tarotBirth">
+    </div>
+
+    <div class="field">
+      <label>🔎 Fecha para la consulta</label>
+      <input type="date" id="tarotQuery">
+    </div>
+
+    <div class="row">
+      <button class="chip active" data-mode="query">📅 Según consulta</button>
+      <button class="chip" data-mode="birth">🌟 Según nacimiento</button>
+      <button class="chip" data-mode="random">🎲 Aleatoria</button>
+    </div>
+
+    <div class="row">
+      <button class="chip active" data-count="1">1 Carta</button>
+      <button class="chip" data-count="3">3 Cartas</button>
+      <button class="chip" data-count="5">5 Cartas</button>
+    </div>
+
+    <button class="btn" id="drawBtn">Barajar y Repartir</button>
+
+    <div id="personalReading"></div>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="reading" id="reading" style="display:none"></div>
+
+    <div class="card-details" id="cardDetails"></div>
+
+    <div class="btn-group no-print" id="tarotActions" style="display:none">
+      <button class="btn share" id="shareTarot">📤 Compartir</button>
+      <button class="btn whatsapp" id="waTarot">💬 WhatsApp</button>
+    </div>
+    <button class="btn pdf no-print" id="pdfTarot" style="display:none">📄 Guardar como PDF</button>
+  </section>
+
+  <!-- ============ CARTA NATAL ============ -->
+  <section class="panel" id="natal">
+    <div class="field">
+      <label>Fecha de nacimiento</label>
+      <input type="date" id="birthdate" value="1995-06-15">
+    </div>
+
+    <label class="check-row" id="noTimeRow">
+      <input type="checkbox" id="noTime">
+      <span>🕐 No sé mi hora exacta de nacimiento</span>
+    </label>
+
+    <div class="field" id="timeField" style="margin-top:12px">
+      <label>Hora (local)</label>
+      <input type="time" id="birthtime" value="12:00">
+    </div>
+
+    <div class="field" style="margin-top:12px">
+      <label>Ciudad de nacimiento</label>
+      <select id="city">
+        <option value="19.4326,-99.1332,America/Mexico_City">CDMX</option>
+        <option value="20.6597,-103.3496,America/Mexico_City">Guadalajara</option>
+        <option value="25.6866,-100.3161,America/Monterrey">Monterrey</option>
+        <option value="19.0414,-98.2063,America/Mexico_City">Puebla</option>
+        <option value="32.5149,-117.0382,America/Tijuana">Tijuana</option>
+        <option value="21.1619,-86.8515,America/Cancun">Cancún</option>
+        <option value="20.9674,-89.5926,America/Merida">Mérida</option>
+        <option value="19.1738,-96.1342,America/Mexico_City">Veracruz</option>
+        <option value="40.4168,-3.7038,Europe/Madrid">Madrid</option>
+        <option value="-34.6037,-58.3816,America/Argentina/Buenos_Aires">Buenos Aires</option>
+        <option value="4.7110,-74.0721,America/Bogota">Bogotá</option>
+        <option value="-12.0464,-77.0428,America/Lima">Lima</option>
+        <option value="-33.4489,-70.6693,America/Santiago">Santiago</option>
+        <option value="-23.5505,-46.6333,America/Sao_Paulo">São Paulo</option>
+        <option value="40.7128,-74.0060,America/New_York">Nueva York</option>
+        <option value="34.0522,-118.2437,America/Los_Angeles">Los Ángeles</option>
+        <option value="51.5074,-0.1278,Europe/London">Londres</option>
+        <option value="48.8566,2.3522,Europe/Paris">París</option>
+        <option value="35.6762,139.6503,Asia/Tokyo">Tokio</option>
+        <option value="manual">✏️ Otra ciudad (manual)</option>
+      </select>
+    </div>
+
+    <div id="manualBox" style="display:none">
+      <div class="field">
+        <label>Nombre de la ciudad (opcional)</label>
+        <input type="text" id="cityName" placeholder="Ej. Chilpancingo, Gro.">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Latitud</label>
+          <input type="number" id="lat" value="17.5511" step="0.0001">
+        </div>
+        <div class="field">
+          <label>Longitud</label>
+          <input type="number" id="lon" value="-99.5016" step="0.0001">
+        </div>
+      </div>
+      <div class="field">
+        <label>Zona horaria IANA</label>
+        <select id="tzName">
+          <option value="America/Mexico_City">America/Mexico_City (Centro)</option>
+          <option value="America/Monterrey">America/Monterrey</option>
+          <option value="America/Merida">America/Merida</option>
+          <option value="America/Cancun">America/Cancun (Quintana Roo)</option>
+          <option value="America/Chihuahua">America/Chihuahua</option>
+          <option value="America/Hermosillo">America/Hermosillo (Sonora)</option>
+          <option value="America/Mazatlan">America/Mazatlan (Pacífico)</option>
+          <option value="America/Tijuana">America/Tijuana</option>
+          <option value="America/Bogota">America/Bogota</option>
+          <option value="America/Lima">America/Lima</option>
+          <option value="America/Argentina/Buenos_Aires">America/Buenos Aires</option>
+          <option value="America/Santiago">America/Santiago</option>
+          <option value="America/Sao_Paulo">America/Sao_Paulo</option>
+          <option value="America/New_York">America/New_York</option>
+          <option value="America/Los_Angeles">America/Los_Angeles</option>
+          <option value="Europe/Madrid">Europe/Madrid</option>
+          <option value="Europe/London">Europe/London</option>
+          <option value="Europe/Paris">Europe/Paris</option>
+          <option value="Asia/Tokyo">Asia/Tokyo</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" id="calcBtn" style="margin-top:14px">Calcular Carta Natal</button>
+
+    <div class="result" id="natalResult">
+      <div id="unknownTimeWarn" class="warn-box" style="display:none">
+        ⚠️ Sin hora exacta, el Ascendente es aproximado (se usó 12:00 del mediodía).
+        El Sol, la Luna y los planetas sí son confiables.
+      </div>
+
+      <div class="big3">
+        <div class="item"><div class="lbl">Sol</div><div class="val" id="rSun">—</div><div class="sub" id="rSunD"></div></div>
+        <div class="item"><div class="lbl">Luna</div><div class="val" id="rMoon">—</div><div class="sub" id="rMoonD"></div></div>
+        <div class="item" id="ascItem"><div class="lbl">Ascendente</div><div class="val" id="rAsc">—</div><div class="sub" id="rAscD"></div></div>
+      </div>
+
+      <div class="wheel-box" id="wheelBox"></div>
+      <div class="planets" id="planetList"></div>
+      <div class="aspects" id="aspectsBox"></div>
+
+      <div class="btn-group no-print">
+        <button class="btn share" id="shareNatal">📤 Compartir</button>
+        <button class="btn whatsapp" id="waNatal">💬 WhatsApp</button>
+      </div>
+      <button class="btn pdf no-print" id="pdfNatal">📄 Guardar como PDF</button>
+      <button class="btn secondary no-print" id="saveNatal">💾 Guardar para revoluciones</button>
+    </div>
+  </section>
+
+  <!-- ============ REVOLUCIONES ============ -->
+  <section class="panel" id="rev">
+    <div id="revEmpty" class="empty-msg">
+      <span class="ico">☀</span>
+      Primero calcula tu <strong>Carta Natal</strong> y guárdala,<br>
+      para generar tu Revolución Solar y Lunar.
+    </div>
+
+    <div id="revContent" style="display:none">
+      <div class="rev-card">
+        <h3>☀ Revolución Solar</h3>
+        <div class="date-info" id="solarDate"></div>
+        <div class="big3">
+          <div class="item"><div class="lbl">Sol</div><div class="val" id="rsSun">—</div><div class="sub" id="rsSunD"></div></div>
+          <div class="item"><div class="lbl">Luna</div><div class="val" id="rsMoon">—</div><div class="sub" id="rsMoonD"></div></div>
+          <div class="item"><div class="lbl">Asc</div><div class="val" id="rsAsc">—</div><div class="sub" id="rsAscD"></div></div>
+        </div>
+        <div class="wheel-box" id="solarWheel"></div>
+      </div>
+
+      <div class="rev-card">
+        <h3>☽ Revolución Lunar</h3>
+        <div class="date-info" id="lunarDate"></div>
+        <div class="big3">
+          <div class="item"><div class="lbl">Sol</div><div class="val" id="rlSun">—</div><div class="sub" id="rlSunD"></div></div>
+          <div class="item"><div class="lbl">Luna</div><div class="val" id="rlMoon">—</div><div class="sub" id="rlMoonD"></div></div>
+          <div class="item"><div class="lbl">Asc</div><div class="val" id="rlAsc">—</div><div class="sub" id="rlAscD"></div></div>
+        </div>
+        <div class="wheel-box" id="lunarWheel"></div>
+      </div>
+
+      <button class="btn pdf no-print" id="pdfRev">📄 Guardar como PDF</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>Hecho con ✦ por <strong>Abraham Fernando Ulloa O.</strong></footer>
+<button class="install no-print" id="installBtn">📲 Instalar app</button>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   TEMA
+   ============================================================ */
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  themeToggle.textContent = t === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('oraculo_theme', t);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t==='dark' ? '#1a0b2e' : '#ede9fe');
+}
+applyTheme(localStorage.getItem('oraculo_theme') || 'dark');
+themeToggle.onclick = ()=>{
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+};
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function vibrate(ms=30){ if(navigator.vibrate) navigator.vibrate(ms); }
+function fmtDate(d){
+  return d.toLocaleDateString('es-MX', {year:'numeric',month:'long',day:'numeric'});
+}
+function fmtDateTime(d){
+  return d.toLocaleString('es-MX', {
+    year:'numeric',month:'long',day:'numeric',
+    hour:'2-digit',minute:'2-digit'
+  });
+}
+
+/* Signo solar desde una fecha (aproximado) */
+function sunSignFromDate(date){
+  const m = date.getMonth()+1, d = date.getDate();
+  const edges = [
+    [1,20,'Acuario'], [2,19,'Piscis'], [3,21,'Aries'], [4,20,'Tauro'],
+    [5,21,'Géminis'], [6,21,'Cáncer'], [7,23,'Leo'], [8,23,'Virgo'],
+    [9,23,'Libra'], [10,23,'Escorpio'], [11,22,'Sagitario'], [12,22,'Capricornio']
+  ];
+  for(const [mm,dd,sign] of edges){
+    if(m === mm && d < dd){
+      const prev = edges[(edges.findIndex(e=>e[0]===mm)-1+12)%12];
+      return prev[2] === 'Capricornio' && mm===1 ? 'Capricornio' : prev[2];
+    }
+  }
+  // Fallback más simple
+  if((m===1&&d>=20)||(m===2&&d<=18)) return 'Acuario';
+  if((m===2&&d>=19)||(m===3&&d<=20)) return 'Piscis';
+  if((m===3&&d>=21)||(m===4&&d<=19)) return 'Aries';
+  if((m===4&&d>=20)||(m===5&&d<=20)) return 'Tauro';
+  if((m===5&&d>=21)||(m===6&&d<=20)) return 'Géminis';
+  if((m===6&&d>=21)||(m===7&&d<=22)) return 'Cáncer';
+  if((m===7&&d>=23)||(m===8&&d<=22)) return 'Leo';
+  if((m===8&&d>=23)||(m===9&&d<=22)) return 'Virgo';
+  if((m===9&&d>=23)||(m===10&&d<=22)) return 'Libra';
+  if((m===10&&d>=23)||(m===11&&d<=21)) return 'Escorpio';
+  if((m===11&&d>=22)||(m===12&&d<=21)) return 'Sagitario';
+  return 'Capricornio';
+}
+
+/* Fase lunar aproximada */
+function moonPhaseName(date){
+  const ref = Date.UTC(2000,0,6,18,14);
+  const days = (date.getTime() - ref) / 86400000;
+  const cycle = 29.530588853;
+  const phase = ((days % cycle) + cycle) % cycle;
+  if(phase < 1.85) return 'Luna Nueva 🌑';
+  if(phase < 5.54) return 'Luna Creciente 🌒';
+  if(phase < 9.23) return 'Cuarto Creciente 🌓';
+  if(phase < 12.92) return 'Gibosa Creciente 🌔';
+  if(phase < 16.61) return 'Luna Llena 🌕';
+  if(phase < 20.30) return 'Gibosa Menguante 🌖';
+  if(phase < 23.99) return 'Cuarto Menguante 🌗';
+  if(phase < 27.68) return 'Luna Menguante 🌘';
+  return 'Luna Nueva 🌑';
+}
+
+/* Interpretaciones por signo solar */
+const SIGN_READINGS = {
+  Aries:    {emoji:'♈', element:'Fuego', planet:'Marte',
+    text:'Naciste bajo el fuego pionero de Marte. Tu alma necesita acción, retos y comenzar cosas nuevas. En este momento el oráculo te recuerda que la valentía no siempre es ruidosa: a veces es saber esperar el momento preciso para dar el primer paso.'},
+  Tauro:    {emoji:'♉', element:'Tierra', planet:'Venus',
+    text:'Naciste bajo la tierra fértil de Venus. Valoras la estabilidad, los sentidos y lo duradero. El oráculo te susurra que lo que construyes con paciencia tiene raíces profundas; no apresures los frutos, porque tu tiempo es distinto y más sabio.'},
+  Géminis:  {emoji:'♊', element:'Aire', planet:'Mercurio',
+    text:'Naciste bajo el aire curioso de Mercurio. Tu mente viaja rápido entre ideas, personas y lugares. El oráculo te invita a escuchar no solo lo que piensas, sino lo que sientes: la respuesta está en el silencio entre tus pensamientos.'},
+  Cáncer:   {emoji:'♋', element:'Agua', planet:'Luna',
+    text:'Naciste bajo las mareas de la Luna. Tu corazón es profundo, intuitivo y protector. El oráculo te recuerda que cuidar de ti no es egoísmo: honrar tus emociones es la forma más alta de sabiduría que puedes ofrecer al mundo.'},
+  Leo:      {emoji:'♌', element:'Fuego', planet:'Sol',
+    text:'Naciste bajo el Sol radiante. Vienes a brillar, a crear y a inspirar a otros con tu presencia. El oráculo te recuerda que tu luz no necesita permiso para existir, pero también brilla más cuando iluminas a los demás sin esperar nada.'},
+  Virgo:    {emoji:'♍', element:'Tierra', planet:'Mercurio',
+    text:'Naciste bajo la tierra analítica de Mercurio. Ves los detalles que otros ignoran y buscas la perfección en todo. El oráculo te susurra que lo imperfecto también es sagrado: a veces la belleza está en lo que no controlas.'},
+  Libra:    {emoji:'♎', element:'Aire', planet:'Venus',
+    text:'Naciste bajo el aire armonioso de Venus. Buscas equilibrio, belleza y justicia en todo lo que haces. El oráculo te invita a recordar que la paz verdadera empieza por elegirte a ti, no solo por agradar a los demás.'},
+  Escorpio: {emoji:'♏', element:'Agua', planet:'Plutón',
+    text:'Naciste bajo las aguas profundas de Plutón. Transformas todo lo que tocas, incluyéndote a ti mismo. El oráculo te recuerda que tu intensidad no es un defecto: es tu mayor poder, siempre que la uses para sanar y no para controlar.'},
+  Sagitario:{emoji:'♐', element:'Fuego', planet:'Júpiter',
+    text:'Naciste bajo el fuego expansivo de Júpiter. Tu alma busca la verdad, la libertad y el sentido de todo. El oráculo te susurra que el viaje más importante no siempre es hacia afuera: a veces estás buscando algo que ya vive dentro de ti.'},
+  Capricornio:{emoji:'♑', element:'Tierra', planet:'Saturno',
+    text:'Naciste bajo la tierra paciente de Saturno. Vienes al mundo a construir, a liderar y a dejar huella. El oráculo te recuerda que el éxito sin descanso no es éxito: date permiso de disfrutar lo que has construido.'},
+  Acuario:  {emoji:'♒', element:'Aire', planet:'Urano',
+    text:'Naciste bajo el aire visionario de Urano. Piensas distinto, sueñas distinto, amas distinto. El oráculo te recuerda que tu rareza es tu regalo: no encajas porque viniste a crear un molde nuevo, no a seguir el existente.'},
+  Piscis:   {emoji:'♓', element:'Agua', planet:'Neptuno',
+    text:'Naciste bajo las aguas infinitas de Neptuno. Sientes el mundo con una profundidad que pocos comprenden. El oráculo te susurra que tu sensibilidad no es debilidad: es el puente entre lo visible y lo sagrado.'}
+};
+
+/* ============================================================
+   TAROT
+   ============================================================ */
+const ARCANA = [
+  {n:"El Loco",s:"🃏",u:"Nuevos comienzos, espontaneidad, fe en el camino. Un salto confiado hacia lo desconocido.",r:"Imprudencia, indecisión, miedo a empezar. Falta de dirección."},
+  {n:"El Mago",s:"🪄",u:"Manifestación, poder personal, habilidades. Tienes las herramientas para lograrlo.",r:"Manipulación, talento desperdiciado, inseguridad."},
+  {n:"La Sacerdotisa",s:"🌙",u:"Intuición, misterio, sabiduría interior. Escucha tu voz interna.",r:"Secretos, desconexión de la intuición, superficialidad."},
+  {n:"La Emperatriz",s:"🌾",u:"Abundancia, fertilidad, creatividad, cuidado maternal.",r:"Dependencia, bloqueo creativo, descuido propio."},
+  {n:"El Emperador",s:"🏛️",u:"Autoridad, estructura, liderazgo, estabilidad.",r:"Tiranía, rigidez, pérdida de control."},
+  {n:"El Sumo Sacerdote",s:"📜",u:"Tradición, guía espiritual, enseñanza, convenciones.",r:"Rebeldía, dogmatismo, desconexión de la fe."},
+  {n:"Los Enamorados",s:"💞",u:"Amor, elección, armonía, unión significativa.",r:"Indecisión, desequilibrio, conflicto de valores."},
+  {n:"El Carro",s:"⚔️",u:"Victoria, determinación, control, avance decidido.",r:"Falta de rumbo, obstáculos, agresividad."},
+  {n:"La Fuerza",s:"🦁",u:"Coraje, dominio sereno, compasión, poder interior.",r:"Duda, debilidad, miedo a tu propio poder."},
+  {n:"El Ermitaño",s:"🕯️",u:"Introspección, sabiduría, búsqueda solitaria de la verdad.",r:"Aislamiento, soledad no elegida, terquedad."},
+  {n:"La Rueda",s:"🎡",u:"Ciclos, destino, cambio afortunado, giro del destino.",r:"Mala racha, resistencia al cambio, retrasos."},
+  {n:"La Justicia",s:"⚖️",u:"Equilibrio, verdad, causa y efecto, decisiones justas.",r:"Injusticia, deshonestidad, evasión de responsabilidad."},
+  {n:"El Colgado",s:"🙃",u:"Pausa, nueva perspectiva, sacrificio, entrega.",r:"Estancamiento, martirio inútil, resistencia."},
+  {n:"La Muerte",s:"💀",u:"Transformación profunda, fin de un ciclo, renacimiento.",r:"Resistencia al cambio, estancamiento, miedo."},
+  {n:"La Templanza",s:"🕊️",u:"Equilibrio, moderación, sanación, paciencia.",r:"Excesos, desequilibrio, impaciencia."},
+  {n:"El Diablo",s:"😈",u:"Pasión, deseo, ataduras, sombra que hay que mirar.",r:"Liberación, ruptura de cadenas, toma de conciencia."},
+  {n:"La Torre",s:"🗼",u:"Cambio brusco, revelación, derrumbe necesario.",r:"Desastre evitado, miedo al cambio, catástrofe interna."},
+  {n:"La Estrella",s:"⭐",u:"Esperanza, inspiración, sanación, fe renovada.",r:"Desánimo, falta de fe, desconexión."},
+  {n:"La Luna",s:"🌕",u:"Ilusión, subconsciente, miedos ocultos, intuición.",r:"Confusión disipada, verdad revelada, alivio."},
+  {n:"El Sol",s:"☀️",u:"Éxito, alegría, vitalidad, claridad total.",r:"Éxito moderado, tristeza, optimismo forzado."},
+  {n:"El Juicio",s:"📯",u:"Renacimiento, llamado interior, despertar, perdón.",r:"Autocrítica excesiva, dudas, evitación."},
+  {n:"El Mundo",s:"🌍",u:"Realización, plenitud, cierre de ciclo, logro.",r:"Metas pendientes, sensación de vacío, falta de cierre."}
+];
+
+const POSITIONS = {
+  1: ["Mensaje"],
+  3: ["Pasado","Presente","Futuro"],
+  5: ["Situación","Obstáculo","Consejo","Resultado","Esencia"]
+};
+
+let tarotMode = 'query';
+let currentCount = 1;
+let lastReading = null;
+
+document.querySelectorAll('#tarot .chip[data-mode]').forEach(c=>{
+  c.onclick = ()=>{
+    document.querySelectorAll('#tarot .chip[data-mode]').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    tarotMode = c.dataset.mode;
+  };
+});
+
+document.querySelectorAll('#tarot .chip[data-count]').forEach(c=>{
+  c.onclick = ()=>{
+    document.querySelectorAll('#tarot .chip[data-count]').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    currentCount = +c.dataset.count;
+  };
+});
+
+function seededRandom(seed){
+  let x = seed % 2147483647;
+  if(x <= 0) x += 2147483646;
+  return function(){
+    x = (x * 16807) % 2147483647;
+    return (x - 1) / 2147483646;
+  };
+}
+function dateToSeed(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){
+    h = ((h << 5) - h) + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h) || 1;
+}
+function shuffleSeeded(arr, rng){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(rng() * (i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+document.getElementById('drawBtn').onclick = () => {
+  const queryVal = document.getElementById('tarotQuery').value;
+  const birthVal = document.getElementById('tarotBirth').value;
+
+  if(!queryVal){ toast('Elige la fecha de consulta'); return; }
+
+  let seedStr, modeLabel;
+  if(tarotMode === 'query'){
+    seedStr = 'query-' + queryVal;
+    modeLabel = `Consulta del ${fmtDate(new Date(queryVal+'T12:00:00'))}`;
+  } else if(tarotMode === 'birth'){
+    if(!birthVal){ toast('Ingresa tu fecha de nacimiento'); return; }
+    seedStr = 'birth-' + birthVal + '-' + queryVal;
+    modeLabel = `Personalizada · nacimiento ${fmtDate(new Date(birthVal+'T12:00:00'))}`;
+  } else {
+    seedStr = 'random-' + Math.random();
+    modeLabel = 'Tirada aleatoria';
+  }
+
+  const rng = seededRandom(dateToSeed(seedStr));
+  const pool = shuffleSeeded(ARCANA, rng).slice(0, currentCount);
+  const revRng = seededRandom(dateToSeed(seedStr + '-rev'));
+  const results = pool.map(a => ({...a, rev: revRng() < 0.35}));
+
+  /* --- Bloque de lectura personalizada arriba --- */
+  const personal = document.getElementById('personalReading');
+  personal.innerHTML = '';
+
+  let personalHTML = '';
+  if(tarotMode === 'birth' && birthVal){
+    const birthDate = new Date(birthVal + 'T12:00:00');
+    const sign = sunSignFromDate(birthDate);
+    const info = SIGN_READINGS[sign];
+    personalHTML += `
+      <div class="personal-box">
+        <h3>🌟 Lectura personal</h3>
+        <span class="sign-badge">${info.emoji} ${sign} · ${info.element} · ${info.planet}</span>
+        <p>${info.text}</p>
+        <p class="quote">Tirada realizada el ${fmtDate(new Date(queryVal+'T12:00:00'))}.</p>
+      </div>`;
+  }
+
+  if(tarotMode === 'query' || tarotMode === 'random'){
+    const queryDate = new Date(queryVal + 'T12:00:00');
+    const sunSign = sunSignFromDate(queryDate);
+    const moonPh = moonPhaseName(queryDate);
+    const info = SIGN_READINGS[sunSign];
+    personalHTML += `
+      <div class="personal-box">
+        <h3>🌌 Contexto astrológico</h3>
+        <span class="sign-badge">☀ Sol en ${info.emoji} ${sunSign}</span>
+        <span class="sign-badge" style="background:var(--pink)">${moonPh}</span>
+        <p>La energía de esta fecha está marcada por <strong>${sunSign}</strong> (${info.element}, regido por ${info.planet}) y la ${moonPh}. ${info.text.split('. ')[0]}. Este es el clima energético en el que se da tu consulta.</p>
+      </div>`;
+  }
+
+  if(tarotMode === 'birth' && birthVal){
+    const birthDate = new Date(birthVal + 'T12:00:00');
+    const queryDate = new Date(queryVal + 'T12:00:00');
+    const moonPh = moonPhaseName(queryDate);
+    personalHTML += `
+      <div class="personal-box" style="border-color:var(--pink)">
+        <h3>🌙 Momento de la consulta</h3>
+        <span class="sign-badge" style="background:var(--pink)">${moonPh}</span>
+        <p>Esta tirada se realiza bajo la energía de la <strong>${moonPh}</strong>, lo que tiñe la lectura con esa vibración lunar. Es un buen momento para preguntas relacionadas con aquello que la Luna gobierna: emociones, hogar, intuición y ciclos.</p>
+      </div>`;
+  }
+
+  personal.innerHTML = personalHTML;
+
+  /* --- Cartas --- */
+  const cards = document.getElementById('cards');
+  cards.style.gridTemplateColumns =
+    currentCount===1 ? '1fr' :
+    currentCount===3 ? 'repeat(3,1fr)' :
+    'repeat(3,1fr)';
+  cards.innerHTML = '';
+  const reading = document.getElementById('reading');
+  reading.style.display = 'none';
+  reading.innerHTML = '';
+  document.getElementById('cardDetails').innerHTML = '';
+  document.getElementById('tarotActions').style.display = 'none';
+  document.getElementById('pdfTarot').style.display = 'none';
+
+  results.forEach((a,i)=>{
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <div class="card-inner">
+        <div class="face back"></div>
+        <div class="face front">
+          <div class="sym">${a.s}</div>
+          <div class="name">${a.n}</div>
+          ${a.rev?'<div class="rev">Invertida</div>':''}
+        </div>
+      </div>`;
+    el.onclick = ()=>{ el.classList.toggle('flipped'); vibrate(20); };
+    cards.appendChild(el);
+    setTimeout(()=>{ el.classList.add('flipped'); vibrate(15); }, 250 + i*260);
+  });
+
+  /* --- Interpretación resumen --- */
+  setTimeout(()=>{
+    let html = `<h3>✦ Interpretación general ✦</h3><p class="meta">${modeLabel}</p>`;
+    results.forEach((a,i)=>{
+      const pos = POSITIONS[currentCount][i];
+      html += `<p><strong style="color:var(--gold2)">${pos} — ${a.n}${a.rev?' (invertida)':''}:</strong> ${a.rev?a.r:a.u}</p>`;
+    });
+    reading.innerHTML = html;
+    reading.style.display = 'block';
+
+    /* --- Detalle carta por carta --- */
+    const details = document.getElementById('cardDetails');
+    details.innerHTML = '';
+    results.forEach((a,i)=>{
+      const pos = POSITIONS[currentCount][i];
+      const div = document.createElement('div');
+      div.className = 'card-detail';
+      div.innerHTML = `
+        <div class="cd-head">
+          <span class="cd-pos">${pos}</span>
+          <span class="cd-name">${a.s} ${a.n}</span>
+          ${a.rev?'<span class="cd-rev">INVERTIDA</span>':''}
+        </div>
+        <div class="cd-text">${a.rev ? a.r : a.u}</div>
+      `;
+      details.appendChild(div);
+    });
+
+    document.getElementById('tarotActions').style.display = 'flex';
+    document.getElementById('pdfTarot').style.display = 'block';
+
+    lastReading = {
+      type:'tarot',
+      modeLabel,
+      personal: personalHTML,
+      cards: results,
+      count: currentCount,
+      date: new Date().toISOString()
+    };
+  }, 400 + results.length*280);
+};
+
+function buildTarotText(){
+  if(!lastReading) return '';
+  const lines = lastReading.cards.map((c,i)=>
+    `• ${POSITIONS[lastReading.count][i]}: ${c.n}${c.rev?' (inv.)':''}`
+  ).join('\n');
+  return `🔮 Mi tirada de Tarot — Oráculo Estelar\n${lastReading.modeLabel}\n\n${lines}\n\n✨ Pruébalo tú también:\nhttps://ciberhackerahualulco.github.io/Oraculo-Estelar/`;
+}
+
+document.getElementById('shareTarot').onclick = ()=>{
+  const text = buildTarotText();
+  if(!text) return;
+  if(navigator.share){
+    navigator.share({title:'Mi tirada de Tarot', text}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>toast('Copiado al portapapeles'));
+  }
+};
+
+document.getElementById('waTarot').onclick = ()=> shareWhatsApp(buildTarotText());
+
+function shareWhatsApp(text){
+  if(!text) return;
+  const phone = prompt('Número de WhatsApp con código de país (ej. 5215512345678):');
+  if(!phone) return;
+  const clean = phone.replace(/\D/g,'');
+  if(clean.length < 8){ toast('Número inválido'); return; }
+  window.open(`https://wa.me/${clean}?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+document.getElementById('pdfTarot').onclick = ()=> window.print();
+
+/* ============================================================
+   CARTA NATAL
+   ============================================================ */
+const SIGNS = ["Aries","Tauro","Géminis","Cáncer","Leo","Virgo","Libra","Escorpio","Sagitario","Capricornio","Acuario","Piscis"];
+const SIGNS_EMOJI = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+const PLANETS = [
+  {name:"Sol",ico:"☀",L0:null},
+  {name:"Luna",ico:"☽",L0:null},
+  {name:"Mercurio",ico:"☿",L0:252.25,P:87.969,d:0.387},
+  {name:"Venus",ico:"♀",L0:181.98,P:224.701,d:0.723},
+  {name:"Marte",ico:"♂",L0:355.43,P:686.980,d:1.524},
+  {name:"Júpiter",ico:"♃",L0:34.35,P:4332.589,d:5.203},
+  {name:"Saturno",ico:"♄",L0:50.08,P:10759.22,d:9.537},
+  {name:"Urano",ico:"♅",L0:314.05,P:30685.4,d:19.19},
+  {name:"Neptuno",ico:"♆",L0:304.35,P:60189,d:30.07},
+  {name:"Plutón",ico:"♇",L0:238.93,P:90560,d:39.48}
+];
+const D2R = Math.PI/180, R2D = 180/Math.PI;
+
+function toJD(y,m,d,h){
+  if(m<=2){y--;m+=12;}
+  const A = Math.floor(y/100);
+  const B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + B - 1524.5 + h/24;
+}
+function norm360(x){x%=360; return x<0?x+360:x;}
+function earthHelio(d){ return norm360(100.46 + 0.98564736 * d); }
+function sunGeo(d){ return norm360(earthHelio(d) + 180); }
+function moonGeo(d){
+  const L = 218.316 + 13.176396 * d;
+  const M = (134.963 + 13.064993 * d) * D2R;
+  return norm360(L + 6.289*Math.sin(M));
+}
+function planetGeo(L0,P,dist,d){
+  const Lh = norm360(L0 + 360*d/P);
+  const Le = earthHelio(d);
+  const x = dist*Math.cos(Lh*D2R) - Math.cos(Le*D2R);
+  const y = dist*Math.sin(Lh*D2R) - Math.sin(Le*D2R);
+  return norm360(Math.atan2(y,x)*R2D);
+}
+function gmst(d){
+  let g = 18.697374558 + 24.06570982441908 * d;
+  g %= 24; if(g<0) g+=24;
+  return g;
+}
+function ascMc(d, latDeg, lonDeg){
+  const eps = 23.4393 * D2R;
+  const lst = (gmst(d) + lonDeg/15) % 24;
+  const ramc = ((lst*15)%360)*D2R;
+  const phi = latDeg*D2R;
+  let asc = Math.atan2(Math.cos(ramc), -(Math.sin(ramc)*Math.cos(eps) + Math.tan(phi)*Math.sin(eps)));
+  asc = norm360(asc*R2D);
+  let mc = Math.atan2(Math.sin(ramc), Math.cos(ramc)*Math.cos(eps));
+  mc = norm360(mc*R2D);
+  return {asc, mc};
+}
+function signOf(lon){
+  const i = Math.floor(norm360(lon)/30);
+  const deg = norm360(lon)%30;
+  return {sign:SIGNS[i], emoji:SIGNS_EMOJI[i], deg:deg.toFixed(1), index:i};
+}
+function getOffsetHours(date, timeZone){
+  try{
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone, hour12:false,
+      year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    });
+    const parts = dtf.formatToParts(date);
+    const map = {};
+    parts.forEach(p=>map[p.type]=p.value);
+    const asUTC = Date.UTC(+map.year, +map.month-1, +map.day, +map.hour, +map.minute, +map.second);
+    return (asUTC - date.getTime()) / 3600000;
+  }catch(e){ return 0; }
+}
+
+const ASPECT_DEFS = [
+  {name:'Conjunción', angle:0,   orb:8, color:'#e8c56a', sym:'☌'},
+  {name:'Sextil',     angle:60,  orb:6, color:'#4ade80', sym:'⚹'},
+  {name:'Cuadratura', angle:90,  orb:7, color:'#ef4444', sym:'□'},
+  {name:'Trígono',    angle:120, orb:8, color:'#60a5fa', sym:'△'},
+  {name:'Oposición',  angle:180, orb:8, color:'#ef4444', sym:'☍'}
+];
+function angularDiff(a,b){
+  let d = Math.abs(a-b) % 360;
+  if(d>180) d = 360 - d;
+  return d;
+}
+function findAspect(l1,l2){
+  const diff = angularDiff(l1,l2);
+  for(const a of ASPECT_DEFS){
+    if(Math.abs(diff - a.angle) <= a.orb){
+      return {...a, diff: diff.toFixed(1)};
+    }
+  }
+  return null;
+}
+
+function renderWheel(planets, ascLon, showAsc){
+  const size = 400;
+  const cx = size/2, cy = size/2;
+  const rOuter = 185, rSignIn = 155, rInner = 105;
+  function xy(lon, r){
+    const rad = lon * D2R;
+    return { x: cx - r*Math.sin(rad), y: cy - r*Math.cos(rad) };
+  }
+  let svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="var(--wheel-bg)" stroke="var(--line)" stroke-width="1.5"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${rSignIn}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${rInner}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  for(let i=0;i<12;i++){
+    const lon = i*30;
+    const p1 = xy(lon, rInner);
+    const p2 = xy(lon, rOuter);
+    svg += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="var(--line)" stroke-width="0.8"/>`;
+    const mid = xy(lon+15, (rSignIn+rOuter)/2);
+    svg += `<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dominant-baseline="central" font-size="18" fill="var(--muted)">${SIGNS_EMOJI[i]}</text>`;
+  }
+  for(let i=0;i<planets.length;i++){
+    for(let j=i+1;j<planets.length;j++){
+      const asp = findAspect(planets[i].lon, planets[j].lon);
+      if(asp){
+        const p1 = xy(planets[i].lon, rInner);
+        const p2 = xy(planets[j].lon, rInner);
+        svg += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${asp.color}" stroke-width="1" opacity="0.55"/>`;
+      }
+    }
+  }
+  const rPlanet = (rSignIn + rInner) / 2;
+  planets.forEach(p=>{
+    const pos = xy(p.lon, rPlanet);
+    svg += `<text x="${pos.x}" y="${pos.y}" text-anchor="middle" dominant-baseline="central" font-size="16" fill="var(--gold)">${p.ico}</text>`;
+    const t1 = xy(p.lon, rInner);
+    const t2 = xy(p.lon, rInner + 8);
+    svg += `<line x1="${t1.x}" y1="${t1.y}" x2="${t2.x}" y2="${t2.y}" stroke="var(--gold)" stroke-width="1.5"/>`;
+  });
+  if(showAsc !== false && ascLon !== null){
+    const a1 = xy(ascLon, rInner);
+    const a2 = xy(ascLon, rInner + 20);
+    svg += `<line x1="${a1.x}" y1="${a1.y}" x2="${a2.x}" y2="${a2.y}" stroke="var(--pink)" stroke-width="2.5"/>`;
+    const a3 = xy(ascLon, rInner + 32);
+    svg += `<text x="${a3.x}" y="${a3.y}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="var(--pink)" font-weight="700">ASC</text>`;
+  }
+  svg += '</svg>';
+  return svg;
+}
+
+document.getElementById('city').onchange = e=>{
+  document.getElementById('manualBox').style.display = e.target.value==='manual'?'block':'none';
+};
+
+document.getElementById('noTime').onchange = e=>{
+  document.getElementById('timeField').style.display = e.target.checked ? 'none' : 'block';
+};
+
+function getBirthData(){
+  const dateStr = document.getElementById('birthdate').value;
+  const noTime = document.getElementById('noTime').checked;
+  const timeStr = noTime ? "12:00" : (document.getElementById('birthtime').value || "12:00");
+  if(!dateStr){ toast('Ingresa tu fecha'); return null; }
+  const [Y,M,D] = dateStr.split('-').map(Number);
+  const [hh,mm] = timeStr.split(':').map(Number);
+  let lat, lon, tzName, cityLabel;
+  const cityVal = document.getElementById('city').value;
+  if(cityVal==='manual'){
+    lat = parseFloat(document.getElementById('lat').value);
+    lon = parseFloat(document.getElementById('lon').value);
+    tzName = document.getElementById('tzName').value || 'UTC';
+    cityLabel = document.getElementById('cityName').value || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+  } else {
+    const parts = cityVal.split(',');
+    lat = parseFloat(parts[0]);
+    lon = parseFloat(parts[1]);
+    tzName = parts[2];
+    cityLabel = document.getElementById('city').selectedOptions[0].textContent;
+  }
+  const localAsUTC = Date.UTC(Y, M-1, D, hh, mm, 0);
+  const tzOffset = getOffsetHours(new Date(localAsUTC), tzName);
+  const utcH = hh + mm/60 - tzOffset;
+  const jd = toJD(Y, M, D, utcH);
+  const d = jd - 2451545.0;
+  return {Y,M,D,hh,mm,lat,lon,tzName,tzOffset,jd,d,dateStr,timeStr,noTime,cityLabel};
+}
+
+function computeChart(d, lat, lon){
+  const sunL = sunGeo(d);
+  const moonL = moonGeo(d);
+  const {asc, mc} = ascMc(d, lat, lon);
+  const planets = PLANETS.map(p=>{
+    let lonP;
+    if(p.name==='Sol') lonP = sunL;
+    else if(p.name==='Luna') lonP = moonL;
+    else lonP = planetGeo(p.L0,p.P,p.d,d);
+    return {...p, lon: lonP};
+  });
+  return {sunL, moonL, asc, mc, planets};
+}
+
+let lastNatal = null;
+
+document.getElementById('calcBtn').onclick = ()=>{
+  const bd = getBirthData();
+  if(!bd) return;
+  const chart = computeChart(bd.d, bd.lat, bd.lon);
+
+  const sunS = signOf(chart.sunL);
+  const moonS = signOf(chart.moonL);
+  const ascS = signOf(chart.asc);
+
+  document.getElementById('rSun').textContent = sunS.emoji + ' ' + sunS.sign;
+  document.getElementById('rSunD').textContent = sunS.deg + '°';
+  document.getElementById('rMoon').textContent = moonS.emoji + ' ' + moonS.sign;
+  document.getElementById('rMoonD').textContent = moonS.deg + '°';
+
+  const ascItem = document.getElementById('ascItem');
+  if(bd.noTime){
+    ascItem.classList.add('unknown');
+    document.getElementById('rAsc').textContent = '≈ ' + ascS.emoji + ' ' + ascS.sign;
+    document.getElementById('rAscD').textContent = 'aproximado';
+    document.getElementById('unknownTimeWarn').style.display = 'block';
+  } else {
+    ascItem.classList.remove('unknown');
+    document.getElementById('rAsc').textContent = ascS.emoji + ' ' + ascS.sign;
+    document.getElementById('rAscD').textContent = ascS.deg + '°';
+    document.getElementById('unknownTimeWarn').style.display = 'none';
+  }
+
+  const list = document.getElementById('planetList');
+  list.innerHTML = '';
+  chart.planets.forEach(p=>{
+    const s = signOf(p.lon);
+    const row = document.createElement('div');
+    row.className = 'planet';
+    row.innerHTML = `<span class="ico">${p.ico}</span>
+      <span class="pname">${p.name}</span>
+      <span class="sign">${s.emoji} ${s.sign}</span>
+      <span class="deg">${s.deg}°</span>`;
+    list.appendChild(row);
+  });
+
+  document.getElementById('wheelBox').innerHTML =
+    renderWheel(chart.planets, chart.asc, !bd.noTime);
+
+  const aspectsBox = document.getElementById('aspectsBox');
+  const aspects = [];
+  for(let i=0;i<chart.planets.length;i++){
+    for(let j=i+1;j<chart.planets.length;j++){
+      const asp = findAspect(chart.planets[i].lon, chart.planets[j].lon);
+      if(asp) aspects.push({...asp, p1:chart.planets[i], p2:chart.planets[j]});
+    }
+  }
+  if(aspects.length){
+    let html = `<h3>✦ Aspectos ✦</h3>`;
+    aspects.forEach(a=>{
+      html += `<div class="aspect-item">
+        <span class="asp-sym" style="color:${a.color}">${a.sym}</span>
+        <span class="asp-names">${a.p1.name} <span class="asp-name">${a.name}</span> ${a.p2.name}</span>
+        <span class="orb">${a.diff}°</span>
+      </div>`;
+    });
+    aspectsBox.innerHTML = html;
+  } else {
+    aspectsBox.innerHTML = '';
+  }
+
+  lastNatal = { birth: bd, sun: sunS, moon: moonS, asc: ascS, chart };
+
+  document.getElementById('natalResult').classList.add('show');
+  document.getElementById('natalResult').scrollIntoView({behavior:'smooth', block:'start'});
+};
+
+function buildNatalText(){
+  if(!lastNatal) return '';
+  const n = lastNatal;
+  const ascLine = n.birth.noTime
+    ? `↑ Ascendente: ≈ ${n.asc.sign} (sin hora exacta)`
+    : `↑ Ascendente: ${n.asc.sign} ${n.asc.deg}°`;
+  return `🌌 Mi carta natal — Oráculo Estelar\n\n` +
+    `📅 ${n.birth.dateStr} ${n.birth.noTime ? '(hora desconocida)' : n.birth.timeStr}\n` +
+    `📍 ${n.birth.cityLabel}\n\n` +
+    `☀ Sol: ${n.sun.sign} ${n.sun.deg}°\n` +
+    `☽ Luna: ${n.moon.sign} ${n.moon.deg}°\n` +
+    `${ascLine}\n\n` +
+    `✨ Calcula la tuya:\nhttps://ciberhackerahualulco.github.io/Oraculo-Estelar/`;
+}
+
+document.getElementById('shareNatal').onclick = ()=>{
+  const t = buildNatalText();
+  if(!t) return;
+  if(navigator.share){
+    navigator.share({title:'Mi carta natal', text:t}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(t).then(()=>toast('Copiado al portapapeles'));
+  }
+};
+document.getElementById('waNatal').onclick = ()=> shareWhatsApp(buildNatalText());
+document.getElementById('pdfNatal').onclick = ()=> window.print();
+
+document.getElementById('saveNatal').onclick = ()=>{
+  if(!lastNatal){ toast('Calcula primero tu carta'); return; }
+  const data = {
+    dateStr: lastNatal.birth.dateStr,
+    timeStr: lastNatal.birth.timeStr,
+    noTime: lastNatal.birth.noTime,
+    lat: lastNatal.birth.lat,
+    lon: lastNatal.birth.lon,
+    tzName: lastNatal.birth.tzName,
+    cityLabel: lastNatal.birth.cityLabel,
+    sunL: lastNatal.chart.sunL,
+    moonL: lastNatal.chart.moonL
+  };
+  localStorage.setItem('oraculo_natal', JSON.stringify(data));
+  toast('Carta guardada ✓');
+  updateRevolutions();
+};
+
+/* ============================================================
+   REVOLUCIONES
+   ============================================================ */
+function findSolarReturn(natalSunLon, year){
+  let guess = new Date(Date.UTC(year, 5, 15, 12));
+  for(let i=0;i<15;i++){
+    const jd = toJD(guess.getUTCFullYear(), guess.getUTCMonth()+1, guess.getUTCDate(),
+      guess.getUTCHours() + guess.getUTCMinutes()/60);
+    const d = jd - 2451545.0;
+    const cur = sunGeo(d);
+    let diff = natalSunLon - cur;
+    while(diff > 180) diff -= 360;
+    while(diff < -180) diff += 360;
+    guess = new Date(guess.getTime() + diff * 86400000);
+    if(Math.abs(diff) < 0.001) break;
+  }
+  return guess;
+}
+function findLunarReturn(natalMoonLon, afterDate){
+  let guess = new Date(afterDate.getTime() + 27.32 * 86400000);
+  for(let i=0;i<15;i++){
+    const jd = toJD(guess.getUTCFullYear(), guess.getUTCMonth()+1, guess.getUTCDate(),
+      guess.getUTCHours() + guess.getUTCMinutes()/60);
+    const d = jd - 2451545.0;
+    const cur = moonGeo(d);
+    let diff = natalMoonLon - cur;
+    while(diff > 180) diff -= 360;
+    while(diff < -180) diff += 360;
+    guess = new Date(guess.getTime() + (diff / 13.176) * 86400000);
+    if(Math.abs(diff) < 0.001) break;
+  }
+  return guess;
+}
+
+function updateRevolutions(){
+  const raw = localStorage.getItem('oraculo_natal');
+  if(!raw){
+    document.getElementById('revEmpty').style.display = 'block';
+    document.getElementById('revContent').style.display = 'none';
+    return;
+  }
+  const nat = JSON.parse(raw);
+  document.getElementById('revEmpty').style.display = 'none';
+  document.getElementById('revContent').style.display = 'block';
+
+  const now = new Date();
+  const year = now.getFullYear();
+
+  let solarDate = findSolarReturn(nat.sunL, year);
+  if(solarDate < now) solarDate = findSolarReturn(nat.sunL, year + 1);
+  const lunarDate = findLunarReturn(nat.moonL, now);
+
+  function chartFromDate(date, lat, lon){
+    const jd = toJD(date.getUTCFullYear(), date.getUTCMonth()+1, date.getUTCDate(),
+      date.getUTCHours() + date.getUTCMinutes()/60);
+    const d = jd - 2451545.0;
+    return {d, chart: computeChart(d, lat, lon)};
+  }
+
+  const solarRes = chartFromDate(solarDate, nat.lat, nat.lon);
+  const lunarRes = chartFromDate(lunarDate, nat.lat, nat.lon);
+
+  document.getElementById('solarDate').innerHTML =
+    `<strong>${fmtDateTime(solarDate)}</strong><br>Válida para el año ${solarDate.getFullYear()}`;
+  const sSun = signOf(solarRes.chart.sunL);
+  const sMoon = signOf(solarRes.chart.moonL);
+  const sAsc = signOf(solarRes.chart.asc);
+  document.getElementById('rsSun').textContent = sSun.emoji + ' ' + sSun.sign;
+  document.getElementById('rsSunD').textContent = sSun.deg + '°';
+  document.getElementById('rsMoon').textContent = sMoon.emoji + ' ' + sMoon.sign;
+  document.getElementById('rsMoonD').textContent = sMoon.deg + '°';
+  document.getElementById('rsAsc').textContent = sAsc.emoji + ' ' + sAsc.sign;
+  document.getElementById('rsAscD').textContent = sAsc.deg + '°';
+  document.getElementById('solarWheel').innerHTML =
+    renderWheel(solarRes.chart.planets, solarRes.chart.asc, true);
+
+  document.getElementById('lunarDate').innerHTML =
+    `<strong>${fmtDateTime(lunarDate)}</strong><br>Próximo retorno lunar a tu Luna natal`;
+  const lSun = signOf(lunarRes.chart.sunL);
+  const lMoon = signOf(lunarRes.chart.moonL);
+  const lAsc = signOf(lunarRes.chart.asc);
+  document.getElementById('rlSun').textContent = lSun.emoji + ' ' + lSun.sign;
+  document.getElementById('rlSunD').textContent = lSun.deg + '°';
+  document.getElementById('rlMoon').textContent = lMoon.emoji + ' ' + lMoon.sign;
+  document.getElementById('rlMoonD').textContent = lMoon.deg + '°';
+  document.getElementById('rlAsc').textContent = lAsc.emoji + ' ' + lAsc.sign;
+  document.getElementById('rlAscD').textContent = lAsc.deg + '°';
+  document.getElementById('lunarWheel').innerHTML =
+    renderWheel(lunarRes.chart.planets, lunarRes.chart.asc, true);
+}
+
+document.getElementById('pdfRev').onclick = ()=> window.print();
+
+/* ============================================================
+   PWA + TABS
+   ============================================================ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').classList.add('show');
+});
+document.getElementById('installBtn').onclick = async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').classList.remove('show');
+};
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+    if(t.dataset.tab === 'rev') updateRevolutions();
+  };
+});
+
+// Defaults
+const today = new Date().toISOString().slice(0,10);
+document.getElementById('tarotQuery').value = today;
+document.getElementById('tarotBirth').value = localStorage.getItem('oraculo_tarot_birth') || '';
+
+// Guardar fecha de nacimiento del tarot
+document.getElementById('tarotBirth').addEventListener('change', e=>{
+  localStorage.setItem('oraculo_tarot_birth', e.target.value);
+});
+
+updateRevolutions();
+</script>
+</body>
+</html>
